@@ -4,20 +4,22 @@ import arrow
 from datetime import timedelta
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from calendar import Calendar
+from mycalendar import Calendar
 
 
 class Example(QtWidgets.QWidget):
     def __init__(self):
         self.t0 = arrow.now()
-        self.dt = timedelta(days=12)
+        self.dt = timedelta(days=5)
         super(Example, self).__init__()
 
         self.initUI()
 
     def initUI(self):
-        self.text = u'abc'
         self.setWindowTitle('Draw text')
+        p = self.palette()
+        p.setColor(self.backgroundRole(), QtCore.Qt.white)
+        self.setPalette(p)
         self.show()
 
     def wheelEvent(self, event):
@@ -29,21 +31,30 @@ class Example(QtWidgets.QWidget):
         qp.begin(self)
 
         qp.setRenderHint(qp.Antialiasing)
-        qp.scale(self.width()/100.0, self.height()/100.0)
-        self.drawText(event, qp)
+        font = QtGui.QFont('Decorative', 30)
+        font.setPixelSize(20)
+        qp.setFont(font)
+        w = self.width()
+        h = self.height()
 
-        pen = QtGui.QPen(QtCore.Qt.black, 2, QtCore.Qt.SolidLine)
-        pen.setCosmetic(True)
-        qp.setPen(pen)
-        for line in Calendar.get_lines(self.t0, self.dt):
-            qp.drawLine(line*100, 0, line*100, 100)
-
+        pen1 = QtGui.QPen(QtCore.Qt.black, 1, QtCore.Qt.SolidLine)
+        pen1.setCosmetic(True)
+        pen2 = QtGui.QPen(QtCore.Qt.gray, 1, QtCore.Qt.SolidLine)
+        pen2.setCosmetic(True)
+        lines = Calendar.get_lines(self.t0, self.dt)
+        qp.setPen(pen1)
+        for line in lines[0]:
+            qp.drawLine(line[1]*w, 0., line[1]*w, h)
+            qp.drawText(line[1]*w, 20., str(line[0]))
+        qp.setPen(pen2)
+        try:
+            for line in lines[1]:
+                qp.drawLine(line[1]*w, 0., line[1]*w, h)
+                qp.drawText(line[1]*w, 40., str(line[0]))
+        except IndexError:
+            pass
         qp.end()
 
-    def drawText(self, event, qp):
-        qp.setPen(QtGui.QColor(168, 34, 3))
-        qp.setFont(QtGui.QFont('Decorative', 10))
-        qp.drawText(event.rect(), QtCore.Qt.AlignCenter, self.text)
 
 
 def main():
